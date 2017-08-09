@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:collagen-freemaker="http://www.mulesoft.org/schema/mule/collagen-freemaker" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:collagen="http://www.mulesoft.org/schema/mule/collagen" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/collagen-freemaker http://www.mulesoft.org/schema/mule/collagen-freemaker/current/mule-collagen-freemaker.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/collagen http://www.mulesoft.org/schema/mule/collagen/current/mule-collagen.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8082"  doc:name="HTTP Listener Configuration"/>
+    <collagen:config name="Collagen__Configuration" doc:name="Collagen: Configuration"/>
+    
+    
+    
+    <flow name="collagen-serviceFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/*" doc:name="HTTP" />
+        <vm:outbound-endpoint exchange-pattern="request-response" path="#[message.inboundProperties['http.relative.path']]" doc:name="VM">
+            <vm:transaction action="NONE"/>
+        </vm:outbound-endpoint>
+    </flow>
+    <flow name="collagen-serviceFlowJSON">
+        <vm:inbound-endpoint exchange-pattern="request-response" path="service-json" doc:name="VM">
+            <vm:transaction action="NONE"/>
+        </vm:inbound-endpoint>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('examples/json/example.json')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <set-variable variableName="input" value="#[payload]" doc:name="inputJson"/>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('templates/os.ftl')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <collagen:collagen config-ref="Collagen__Configuration" payload="#[flowVars.input]" template="#[payload]" doc:name="Collagen"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger Sucesso"/>
+    </flow>
+    <flow name="collagen-serviceFlowSoap">
+        <vm:inbound-endpoint exchange-pattern="request-response" path="service-soap" doc:name="VM">
+            <vm:transaction action="NONE"/>
+        </vm:inbound-endpoint>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('examples/json/example.json')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <set-variable variableName="input" value="#[payload]" doc:name="inputJson"/>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('templates/osSOAP.ftl')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <collagen:collagen config-ref="Collagen__Configuration" payload="#[flowVars.input]" template="#[payload]" doc:name="Collagen"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger Sucesso"/>
+    </flow>
+</mule>
