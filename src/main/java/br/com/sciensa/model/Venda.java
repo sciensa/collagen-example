@@ -1,4 +1,4 @@
-package br.com.sciensa.test;
+package br.com.sciensa.model;
 
 import java.util.List;
 import java.util.Map;

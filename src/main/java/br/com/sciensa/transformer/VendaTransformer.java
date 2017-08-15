@@ -9,7 +9,7 @@ import org.mule.api.MuleMessage;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractMessageTransformer;
 
-import br.com.sciensa.test.Venda;
+import br.com.sciensa.model.Venda;
 
 public class VendaTransformer extends AbstractMessageTransformer{
 	

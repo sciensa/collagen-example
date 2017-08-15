@@ -57,8 +57,8 @@ http://www.mulesoft.org/schema/mule/collagen http://www.mulesoft.org/schema/mule
         <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('templates/os.ftl')]" doc:name="Set Payload"/>
         <byte-array-to-string-transformer doc:name="Byte Array to String"/>
         <set-variable variableName="template" value="#[payload]" doc:name="template"/>
-        <custom-transformer returnClass="br.com.sciensa.test.Venda" class="br.com.sciensa.transformer.VendaTransformer" doc:name="Java"/>
-        <collagen:processjava config-ref="Collagen__Configuration" entityType="br.com.sciensa.test.Venda" template="#[flowVars.template]" doc:name="Collagen"/>
+        <custom-transformer returnClass="br.com.sciensa.model.Venda" class="br.com.sciensa.transformer.VendaTransformer" doc:name="Java"/>
+        <collagen:processjava config-ref="Collagen__Configuration" entityType="br.com.sciensa.model.Venda" template="#[flowVars.template]" doc:name="Collagen"/>
         <logger message="#[payload]" level="INFO" doc:name="Logger Sucesso"/>
     </flow>
 </mule>
