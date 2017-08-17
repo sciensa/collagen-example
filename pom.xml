@@ -12,7 +12,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<mule.version>3.8.1</mule.version>
+		<mule.version>3.8.0</mule.version>
     	<mule.tools.version>1.2</mule.tools.version>
 	</properties>
 
@@ -130,12 +130,7 @@
             <version>${mule.version}</version>
             <scope>provided</scope>
         </dependency>
-    <dependency>
-            <groupId>com.mulesoft.weave</groupId>
-            <artifactId>mule-plugin-weave</artifactId>
-            <version>${mule.version}</version>
-            <scope>provided</scope>
-        </dependency>
+    
     <dependency>
             <groupId>com.sciensa</groupId>
             <artifactId>collagen-connector</artifactId>
