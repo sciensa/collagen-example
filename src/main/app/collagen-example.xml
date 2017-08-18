@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:collagen-freemaker="http://www.mulesoft.org/schema/mule/collagen-freemaker" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:collagen="http://www.mulesoft.org/schema/mule/collagen" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+<mule xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:helloworld="http://www.mulesoft.org/schema/mule/helloworld" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:collagen-freemaker="http://www.mulesoft.org/schema/mule/collagen-freemaker" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:collagen="http://www.mulesoft.org/schema/mule/collagen" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:spring="http://www.springframework.org/schema/beans" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/collagen-freemaker http://www.mulesoft.org/schema/mule/collagen-freemaker/current/mule-collagen-freemaker.xsd
-http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/collagen http://www.mulesoft.org/schema/mule/collagen/current/mule-collagen.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
-http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/helloworld http://www.mulesoft.org/schema/mule/helloworld/current/mule-helloworld.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/collagen http://www.mulesoft.org/schema/mule/collagen/current/mule-collagen.xsd
+http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd">
     <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8082"  doc:name="HTTP Listener Configuration"/>
     <collagen:config name="Collagen__Configuration" doc:name="Collagen: Configuration"/>
+    <ws:consumer-config name="Web_Service_Correios" wsdlLocation="https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente?wsdl" service="AtendeClienteService" port="AtendeClientePort" serviceAddress="https://apps.correios.com.br/SigepMasterJPA/AtendeClienteService/AtendeCliente" doc:name="Web Service Consumer"/>
     
     
     
@@ -21,7 +25,7 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
             <vm:transaction action="NONE"/>
         </vm:outbound-endpoint>
     </flow>
-    <flow name="collagen-serviceFlowJSON">
+    <flow name="collagen-serviceJSON">
         <vm:inbound-endpoint exchange-pattern="request-response" path="service-json" doc:name="VM">
             <vm:transaction action="NONE"/>
         </vm:inbound-endpoint>
@@ -30,11 +34,12 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
         <set-variable variableName="input" value="#[payload]" doc:name="inputJson"/>
         <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('templates/os.ftl')]" doc:name="Set Payload"/>
         <byte-array-to-string-transformer doc:name="Byte Array to String"/>
-        <collagen:collagen config-ref="Collagen__Configuration" payload="#[flowVars.input]" template="#[payload]" doc:name="Collagen"/>
+        <set-variable variableName="template" value="#[payload]" doc:name="Variable"/>
+        <collagen:processjson config-ref="Collagen__Configuration" payload="#[flowVars.input]" template="#[flowVars.template]" doc:name="Collagen"/>
         <logger message="#[payload]" level="INFO" doc:name="Logger Sucesso"/>
     </flow>
-    <flow name="collagen-serviceFlowSoap">
-        <vm:inbound-endpoint exchange-pattern="request-response" path="service-soap" doc:name="VM">
+    <flow name="collagen-serviceJSONtoSOAP">
+        <vm:inbound-endpoint exchange-pattern="request-response" path="service-jsontosoap" doc:name="VM">
             <vm:transaction action="NONE"/>
         </vm:inbound-endpoint>
         <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('examples/json/example.json')]" doc:name="Set Payload"/>
@@ -42,7 +47,49 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
         <set-variable variableName="input" value="#[payload]" doc:name="inputJson"/>
         <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('templates/osSOAP.ftl')]" doc:name="Set Payload"/>
         <byte-array-to-string-transformer doc:name="Byte Array to String"/>
-        <collagen:collagen config-ref="Collagen__Configuration" payload="#[flowVars.input]" template="#[payload]" doc:name="Collagen"/>
+        <collagen:processjson config-ref="Collagen__Configuration" payload="#[flowVars.input]" template="#[payload]" doc:name="Collagen"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger Sucesso"/>
+    </flow>
+    <flow name="collagen-serviceJava">
+        <vm:inbound-endpoint exchange-pattern="request-response" path="service-java" doc:name="VM">
+            <vm:transaction action="NONE"/>
+        </vm:inbound-endpoint>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('examples/json/example.json')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <set-variable variableName="input" value="#[payload]" doc:name="input"/>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('templates/os.ftl')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <set-variable variableName="template" value="#[payload]" doc:name="template"/>
+        <custom-transformer returnClass="br.com.sciensa.model.Venda" class="br.com.sciensa.transformer.VendaTransformer" doc:name="Java"/>
+        <collagen:processjava config-ref="Collagen__Configuration" entityType="br.com.sciensa.model.Venda" template="#[flowVars.template]" doc:name="Collagen"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger Sucesso"/>
+    </flow>
+    <flow name="collagen-serviceSOAP">
+        <vm:inbound-endpoint exchange-pattern="request-response" path="service-soap" doc:name="VM">
+            <vm:transaction action="NONE"/>
+        </vm:inbound-endpoint>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('examples/xml/example.xml')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <set-variable variableName="input" value="#[payload]" doc:name="input"/>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('templates/osSOAPXML.ftl')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <set-variable variableName="template" value="#[payload]" doc:name="Template"/>
+        <collagen:processxml config-ref="Collagen__Configuration" payload="#[flowVars.input]" template="#[flowVars.template]" doc:name="Collagen"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger Suesso"/>
+    </flow>
+    <flow name="collagen-exampleWebServices">
+        <vm:inbound-endpoint exchange-pattern="request-response" path="service-correios" doc:name="VM">
+            <vm:transaction action="NONE"/>
+        </vm:inbound-endpoint>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('examples/json/correios.json')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <set-variable variableName="input" value="#[payload]" doc:name="Variable"/>
+        <set-payload value="#[Thread.currentThread().getContextClassLoader().getResourceAsStream('templates/correios.ftl')]" doc:name="Set Payload"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <set-variable variableName="template" value="#[payload]" doc:name="template"/>
+        <collagen:processjson config-ref="Collagen__Configuration" payload="#[flowVars.input]" template="#[flowVars.template]" doc:name="Collagen"/>
+        <byte-array-to-string-transformer doc:name="Byte Array to String"/>
+        <ws:consumer config-ref="Web_Service_Correios" operation="consultaCEP" doc:name="Web Service Consumer"/>
         <logger message="#[payload]" level="INFO" doc:name="Logger Sucesso"/>
     </flow>
 </mule>
